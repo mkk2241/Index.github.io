@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zakup Ice Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://www.paypal.com/sdk/js?client-id=TWÓJ_CLIENT_ID&currency=PLN"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0, 255, 170, 0.2) 10%, transparent 60%), 
+                        radial-gradient(circle, rgba(255, 0, 128, 0.2) 20%, transparent 70%);
+            filter: blur(80px);
+        }
+        .container {
+            background: rgba(20, 20, 20, 0.95);
+            padding: 2rem;
+            width: 400px;
+            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.5);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+        }
+        h2 {
+            font-size: 1.8rem;
+            color: #00ffaa;
+            text-shadow: 0 0 8px #00ffaa;
+            margin-bottom: 1.5rem;
+        }
+        .product {
+            margin: 15px;
+            padding: 10px;
+            border: 2px solid #00ffaa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .product:hover, .selected {
+            border-color: #ff0080;
+            box-shadow: 0 0 10px #ff0080;
+            transform: scale(1.05);
+        }
+        #paypal-button-container { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <h2>Wybierz produkt i zapłać</h2>
+        <div id="products">
+            <div class="product" data-name="Ice Panel Zwykły" data-price="50">Ice Panel Zwykły - 50 PLN</div>
+            <div class="product" data-name="Spooferka" data-price="75">Spooferka - 75 PLN</div>
+            <div class="product" data-name="Ice Panel Pro" data-price="100">Ice Panel Pro - 100 PLN</div>
+        </div>
+        <div id="paypal-button-container"></div>
+    </div>
+    <script>
+        let selectedProduct = null;
+        document.querySelectorAll('.product').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.product').forEach(p => p.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedProduct = this;
+            });
+        });
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                if (!selectedProduct) {
+                    alert("Wybierz produkt przed dokonaniem płatności!");
+                    return;
+                }
+                return actions.order.create({
+                    purchase_units: [{
+                        description: selectedProduct.dataset.name,
+                        amount: { value: selectedProduct.dataset.price, currency_code: "PLN" }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    alert("Dziękujemy za zakup: " + details.purchase_units[0].description);
+                });
+            },
+            onError: function(err) {
+                alert("Błąd płatności, spróbuj ponownie.");
+            }
+        }).render('#paypal-button-container');
+    </script>
+</body>
+</html>
